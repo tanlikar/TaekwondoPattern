@@ -9,10 +9,10 @@
         <ImageView
             android:id="@+id/grid_foot_image"
             android:layout_width="140dp"
-            android:layout_height="100dp"
+            android:layout_height="140dp"
             android:layout_gravity="center"
             android:contentDescription="TODO"
-            android:scaleType="fitXY" />
+            android:scaleType="fitCenter" />
 
         <ImageView
             android:id="@+id/grid_body_image"
