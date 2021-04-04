@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
+import android.content.res.AssetManager;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.widget.GridView;
 import android.widget.TextView;
@@ -12,9 +14,37 @@ import com.example.taekwondopattern.Storage.Constant;
 import com.example.taekwondopattern.viewAdaptor.detailGridAdapter;
 import com.example.taekwondopattern.viewAdaptor.patternGridAdapter;
 
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 public class patternDetailView extends AppCompatActivity implements Constant {
+
+    static {
+        System.setProperty(
+                "org.apache.poi.javax.xml.stream.XMLInputFactory",
+                "com.fasterxml.aalto.stax.InputFactoryImpl"
+        );
+        System.setProperty(
+                "org.apache.poi.javax.xml.stream.XMLOutputFactory",
+                "com.fasterxml.aalto.stax.OutputFactoryImpl"
+        );
+        System.setProperty(
+                "org.apache.poi.javax.xml.stream.XMLEventFactory",
+                "com.fasterxml.aalto.stax.EventFactoryImpl"
+        );
+    }
 
     GridView mGridView;
     TextView mStepDescription;
@@ -25,8 +55,13 @@ public class patternDetailView extends AppCompatActivity implements Constant {
     ArrayList<Integer> bodyImg = new ArrayList<>();
 
     int imgCount = 0;
+    int stepDescriptionCount;
     String stepID = "";
     String bodyID = "";
+
+    XSSFWorkbook workbook;
+    XSSFSheet sheet;
+    Row row;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,11 +80,37 @@ public class patternDetailView extends AppCompatActivity implements Constant {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        switch (pattern){
-            case SAJUJIRUGI:{
-                sajujirugi_step(pattern,step);
+        int patternXlsxID = this.getResources().getIdentifier(patternIDList[pattern], "raw", this.getPackageName());
+        InputStream stream = getResources().openRawResource(patternXlsxID);
+        try {
+            workbook = new XSSFWorkbook(stream);
+            sheet = workbook.getSheetAt(0);
+            row = sheet.getRow(step);
+            detailText = row.getCell(0).getStringCellValue();
+            imgCount = (int) row.getCell(1).getNumericCellValue();
+            stepDescriptionCount = (int) row.getCell(2).getNumericCellValue();
+
+            for (int i = 3; i<stepDescriptionCount+3; i++){
+                if(row.getCell(i) == null){
+                    stepDetail.add("");
+                }else{
+                    stepDetail.add(row.getCell(i).getStringCellValue());
+                }
             }
+
+        }catch (IOException e) {
+            e.printStackTrace();
         }
+
+
+//        switch (pattern){
+//            case SAJUJIRUGI:{
+//                sajujirugi_step(step);
+//                break;
+//            } case SAJUMAKGI:{
+//                sajumakgi_step(step);
+//            }
+//        }
 
         stepID = patternIDList[pattern] + "step" + (step+1);
         bodyID = patternIDList[pattern] + "body" + (step+1);
@@ -71,7 +132,7 @@ public class patternDetailView extends AppCompatActivity implements Constant {
 
     }
 
-    private void sajujirugi_step(int pattern, int step){
+    private void sajujirugi_step(int step){
         switch(step){
             case 0:{
                 detailText = "Parallel ready stance toward D";
@@ -181,7 +242,7 @@ public class patternDetailView extends AppCompatActivity implements Constant {
                 break;
             } case 12:{
                 detailText = "Move the left foot to D, forming a right walking stance toward while executing a low block to A with the right forearm.";
-                imgCount = 4;
+                imgCount = 6;
                 stepDetail.add("right walking stance forearm low block toward C.");
                 stepDetail.add("Previous Posture");
                 stepDetail.add("");
@@ -200,7 +261,7 @@ public class patternDetailView extends AppCompatActivity implements Constant {
                 break;
             } case 14:{
                 detailText = "Move the left foot to A, forming a right walking stance toward while executing a low block to B with the right forearm.";
-                imgCount = 4;
+                imgCount = 5;
                 stepDetail.add("right walking stance forearm low block toward B.");
                 stepDetail.add("Previous Posture");
                 stepDetail.add("");
@@ -226,6 +287,49 @@ public class patternDetailView extends AppCompatActivity implements Constant {
                 break;
             }
         }
+
+    }
+
+    private void sajumakgi_step(int step){
+//        switch(step){
+//            case 0:{
+//                detailText = "Parallel ready stance toward D.";
+//                imgCount = 1;
+//                stepDetail.add("");
+//                break;
+//            } case 1:{
+//                detailText = "Move the right foot to C, forming a left walking stance " +
+//                        "toward D while executing a low block to D with the left knife-hand.";
+//                imgCount = 5;
+//                stepDetail.add("Left walking stance knife-hand low block toward D.");
+//                stepDetail.add("Previous Posture");
+//                stepDetail.add("Keep the back forearms crossed in front of the rib cage, placing the blocking one on the other.");
+//                stepDetail.add("Keep the body half facing the opponent.");
+//                stepDetail.add("Application - Block is executed at the inner tibia.");
+//                break;
+//            } case 2:{
+//                detailText = "Move the right foot to D, forming a right walking stance " +
+//                        "toward D while executing a middle side block to D with the right inner forearm.";
+//                imgCount = 5;
+//                stepDetail.add("Right walking stance inner forearm middle side block toward D.");
+//                stepDetail.add("Previous Posture");
+//                stepDetail.add("");
+//                stepDetail.add("");
+//                stepDetail.add("Application - Side View");
+//                break;
+//            } case 3:{
+//                detailText = "Move the right foot to A, forming a left walking stance " +
+//                        "toward B while executing a low block to B with the left knife-hand.";
+//                imgCount = 6;
+//                stepDetail.add("Left walking stance knife-hand low block toward B.");
+//                stepDetail.add("Previous Posture");
+//                stepDetail.add("Keep the back forearms crossed in front of the rib cage, placing the blocking one on the other.");
+//                stepDetail.add("Keep the body half facing the opponent.");
+//                stepDetail.add("Application - Block is executed at the inner tibia.");
+//                break;
+//            }
+//        }
+
 
     }
 
